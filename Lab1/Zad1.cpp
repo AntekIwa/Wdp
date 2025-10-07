@@ -7,7 +7,7 @@
 long long st[LOGN][MAXN];
 long long t[MAXN];
 int lg[MAXN];
-int n;
+long long n;
 
 long long gcd_ll(long long a, long long b) {
     while (b != 0) {
@@ -21,9 +21,9 @@ long long gcd_ll(long long a, long long b) {
 long long NWW(long long a, long long b){
     if(a == 0 || b == 0) return 0;
     long long g = gcd_ll(a,b);
-    __int128 prod = (__int128)(a/g) * b; // zabezpieczenie przed overflow
+    long long prod = a/g * b;
     if(prod >= (1LL << 33)) return 0;
-    return (long long)prod;
+    return prod;
 }
 
 void log_precomp(){
@@ -63,7 +63,7 @@ int find_max(int idx){
 }
 
 int main(){
-    if(scanf("%d", &n) != 1) return 0;
+    scanf("%lld", &n);
     for(int i = 1; i <= n; i++) scanf("%lld", &t[i]);
 
     log_precomp();
