@@ -10,10 +10,10 @@ int lg[maxn];
 int n;
 
 long long NWW(long long a, long long b){
-    if(a == -1 || b == -1) return -1;
+    if(a == 0 || b == 0) return 0;
     long long nwd = __gcd(a,b);
     long long nww = a * b / nwd;
-    if(nww >= (1LL << 33)) nww = -1;
+    if(nww >= (1LL << 33)) nww = 0;
     return nww;
 }
 void log_precomp(){
@@ -24,7 +24,7 @@ void log_precomp(){
 void sparseTable_build(){
     for(int i = 1; i <= n; i++) st[0][i] = t[i];
     for(int i = 1; i < logn; i++){
-        for(int j = 0; j + (1 << i) < maxn; j++){
+        for(int j = 0; j + (1 << i) <= n; j++){
             st[i][j] = NWW(st[i - 1][j], st[i - 1][j + (1 << (i - 1))]);
         }
     }
@@ -43,7 +43,7 @@ int find_max(int i){
     while(l <= r){
         int mid = (l + r)/2;
         long long nww = query(i - mid, i - 1);
-        if(nww == -1 || t[i]%nww != 0) r = mid - 1;
+        if(nww == 0 || t[i]%nww != 0) r = mid - 1;
         else{
             res = max(res, mid);
             l = mid + 1;
@@ -53,13 +53,16 @@ int find_max(int i){
 }
 int main(){
 	cin >> n;
+    //cout << "git" << endl;
     for(int i = 1; i <= n; i++) cin >> t[i];
+    //cout << "git" << endl;
     sparseTable_build();
+    //cout << "git" << endl;
     log_precomp();
    // cout << query(1, 3) << endl;
    // cout << query(2,2) << endl;
     //cout << find_max(3) << endl;
     int res = 0;
     for(int i = 1; i <= n; i++) res = max(res, find_max(i));
-    cout << res + 1;
+    cout << res + 1 << endl;
 }
