@@ -12,7 +12,7 @@ int n;
 long long NWW(long long a, long long b){
     if(a == 0 || b == 0) return 0;
     long long nwd = __gcd(a,b);
-    long long nww = a * b / nwd;
+    long long nww = a / nwd * b;
     if(nww >= (1LL << 33)) nww = 0;
     return nww;
 }
@@ -24,16 +24,15 @@ void log_precomp(){
 void sparseTable_build(){
     for(int i = 1; i <= n; i++) st[0][i] = t[i];
     for(int i = 1; i < logn; i++){
-        for(int j = 0; j + (1 << i) <= n; j++){
+        for(int j = 1; j + (1 << i) <= n; j++){
             st[i][j] = NWW(st[i - 1][j], st[i - 1][j + (1 << (i - 1))]);
         }
     }
 }
 
 long long query(int l, int r){
-    if(l > r) return -1;
+    if(l > r) return 0;
     int i = lg[r - l + 1];
-    //cout << st[i][l] << " " << st[i][r - (1 << i) + 1] << endl;
     return NWW(st[i][l], st[i][r - (1 << i) + 1]);
 }
 
@@ -52,16 +51,13 @@ int find_max(int i){
     return res;
 }
 int main(){
+    ios_base::sync_with_stdio(0), cin.tie(0), cout.tie(0);
 	cin >> n;
-    //cout << "git" << endl;
     for(int i = 1; i <= n; i++) cin >> t[i];
-    //cout << "git" << endl;
+    long long maxx = -1e9 + 7;
+    for(int i = 1; i <= n; i++) maxx = max(maxx, t[i]);
     sparseTable_build();
-    //cout << "git" << endl;
-    log_precomp();
-   // cout << query(1, 3) << endl;
-   // cout << query(2,2) << endl;
-    //cout << find_max(3) << endl;
+=    log_precomp();
     int res = 0;
     for(int i = 1; i <= n; i++) res = max(res, find_max(i));
     cout << res + 1 << endl;
