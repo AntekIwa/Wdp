@@ -1,30 +1,40 @@
-#include <bits/stdc++.h>
-using namespace std;
+#include <stdio.h>
+#include <stdlib.h>
 
-const int maxn = 1e6 + 7;
-const int logn = 22;
+#define MAXN 1000007
+#define LOGN 22
 
-long long st[logn][maxn];
-long long t[maxn];
-int lg[maxn];
+long long st[LOGN][MAXN];
+long long t[MAXN];
+int lg[MAXN];
 int n;
+
+long long gcd_ll(long long a, long long b) {
+    while (b != 0) {
+        long long tmp = a % b;
+        a = b;
+        b = tmp;
+    }
+    return a;
+}
 
 long long NWW(long long a, long long b){
     if(a == 0 || b == 0) return 0;
-    long long nwd = __gcd(a,b);
-    long long nww = a / nwd * b;
-    if(nww >= (1LL << 33)) nww = 0;
-    return nww;
+    long long g = gcd_ll(a,b);
+    __int128 prod = (__int128)(a/g) * b; // zabezpieczenie przed overflow
+    if(prod >= (1LL << 33)) return 0;
+    return (long long)prod;
 }
+
 void log_precomp(){
     lg[1]  = 0;
-    for(int i = 2; i < maxn; i++) lg[i] = lg[i/2] + 1;
+    for(int i = 2; i < MAXN; i++) lg[i] = lg[i/2] + 1;
 }
 
 void sparseTable_build(){
     for(int i = 1; i <= n; i++) st[0][i] = t[i];
-    for(int i = 1; i < logn; i++){
-        for(int j = 1; j + (1 << i) <= n; j++){
+    for(int i = 1; i < LOGN; i++){
+        for(int j = 1; j + (1 << i) - 1 <= n; j++){
             st[i][j] = NWW(st[i - 1][j], st[i - 1][j + (1 << (i - 1))]);
         }
     }
@@ -36,29 +46,35 @@ long long query(int l, int r){
     return NWW(st[i][l], st[i][r - (1 << i) + 1]);
 }
 
-int find_max(int i){
-    int l = 0, r = i - 1;
+int find_max(int idx){
+    int l = 0, r = idx - 1;
     int res = 0;
     while(l <= r){
         int mid = (l + r)/2;
-        long long nww = query(i - mid, i - 1);
-        if(nww == 0 || t[i]%nww != 0) r = mid - 1;
-        else{
-            res = max(res, mid);
+        long long nww = query(idx - mid, idx - 1);
+        if(nww == 0 || t[idx] % nww != 0) {
+            r = mid - 1;
+        } else {
+            if(mid > res) res = mid;
             l = mid + 1;
         }
     }
     return res;
 }
+
 int main(){
-    ios_base::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-	cin >> n;
-    for(int i = 1; i <= n; i++) cin >> t[i];
-    long long maxx = -1e9 + 7;
-    for(int i = 1; i <= n; i++) maxx = max(maxx, t[i]);
+    if(scanf("%d", &n) != 1) return 0;
+    for(int i = 1; i <= n; i++) scanf("%lld", &t[i]);
+
+    log_precomp();
     sparseTable_build();
-=    log_precomp();
+
     int res = 0;
-    for(int i = 1; i <= n; i++) res = max(res, find_max(i));
-    cout << res + 1 << endl;
+    for(int i = 1; i <= n; i++) {
+        int cand = find_max(i);
+        if(cand > res) res = cand;
+    }
+
+    printf("%d\n", res + 1);
+    return 0;
 }
