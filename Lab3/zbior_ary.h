@@ -4,16 +4,15 @@
 #include <stdbool.h>
 
 typedef struct {
-    int a, b, r;
+    long long a, b, r; 
 } Segment;
 
 typedef struct zbior_ary {
     Segment* data;
-    int size;
-    int cap;
+    int size; 
+    int cap;  
 } zbior_ary;
 
-/* API z zadania – bez zmian */
 zbior_ary ciag_arytmetyczny(int a, int q, int b);
 zbior_ary singleton(int a);
 zbior_ary suma(zbior_ary A, zbior_ary B);
