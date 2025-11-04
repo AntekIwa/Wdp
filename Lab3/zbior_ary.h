@@ -4,10 +4,10 @@
 #include <stdbool.h>
 
 typedef struct {
-    long long a, b, r; 
+    long long a, b, r; //trzymamy jeden przedzial jako poczatek, koniec, reszta z dzielenia
 } Segment;
 
-typedef struct zbior_ary {
+typedef struct zbior_ary { //trzymamy zbior jako przedzialy posortowane po reszcie z dzielenia, a nastepnie po poczatkach i koncach
     Segment* data;
     int size; 
     int cap;  
