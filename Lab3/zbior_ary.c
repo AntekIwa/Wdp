@@ -18,7 +18,7 @@ static int next_cap(int c){ /* jesli pojemnosc jest zamala, to zwiekszamy na kol
     if(n > 2147483640) n = 2147483640; 
     return (int)n; 
 }
-static void z_reserve(zbior_ary* z, int need){ /*rezerwojujemy sobie pamiec zgodnie z wyzszym pomyslem */
+static void z_reserve(zbior_ary* z, int need){ /*rezerwujemy sobie pamiec zgodnie z wyzszym pomyslem */
     if(need <= z->cap) return;
     int nc = z->cap; 
     while(nc < need) nc = next_cap(nc);
@@ -32,7 +32,7 @@ static void z_push(zbior_ary* z, Segment s){
 }
 static void z_push_merged(zbior_ary* z, Segment s){
     if(z->size > 0){
-        Segment* last = &z->data[z->size-1]; // moze mozemy zmarge'owac z ostatnim przedzialem
+        Segment* last = &z->data[z->size-1]; // moze mozemy zmerge'owac z ostatnim przedzialem
         if(last->r == s.r && s.a <= last->b + 1){
             if(s.b > last->b) last->b = s.b;
             return;
@@ -82,7 +82,7 @@ zbior_ary singleton(int a){
 }
 
 bool nalezy(zbior_ary A, int x){
-/* binsearch, wyszukuejmy czy mamy przedzial ktory zawiera x, i daje dobra reszte z dzielenia */
+/* binsearch, wyszukujemy czy mamy przedzial ktory zawiera x, i daje dobra reszte z dzielenia */
     if(A.size == 0) return false;
     long long q = g_q;
     long long r = x%q; 
@@ -117,7 +117,7 @@ zbior_ary suma(zbior_ary A, zbior_ary B){
     int i = 0, j = 0; 
     while (i < A.size || j < B.size){
         if (i < A.size && j < B.size){
-            int comp = cmp_seg(A.data[i], B.data[j]);  //porownujey ktory wczesniejszy
+            int comp = cmp_seg(A.data[i], B.data[j]);  //porownujemy ktory wczesniejszy
             if (comp < 0) z_push_merged(&C, A.data[i++]);
             else if (comp > 0) z_push_merged(&C, B.data[j++]); //merge'ujemy odpowiednie
             else { //jak to samo to dodajemy tylko jeden
@@ -160,7 +160,7 @@ zbior_ary roznica(zbior_ary A, zbior_ary B){
         Segment x = A.data[i];
         while (j < B.size && (x.r > B.data[j].r || (x.r == B.data[j].r && x.a > B.data[j].b))) j++; //przesuwamy poki rozna reszta, badz dopoki nie dojdziemy do nakladajacych sie przedzialow
         long long l = x.a, r = x.b;
-        while (j < B.size && x.r == B.data[j].r && r >= B.data[j].a) { // mamy nakldajacy sie przedzial, odpowiednio go ucinamy
+        while (j < B.size && x.r == B.data[j].r && r >= B.data[j].a) { // mamy nakladajacy sie przedzial, odpowiednio go ucinamy
             long long br = B.data[j].b; 
             long long bl = B.data[j].a;
             if (bl > l) z_push(&C, (Segment){l, bl - 1, x.r});
