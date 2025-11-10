@@ -1,127 +1,216 @@
-#include <stdio.h> 
-#include <stdlib.h> // Potrzebne dla malloc i free
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h> // Potrzebne dla INT_MAX
 
-// Makra zastępujące std::min i std::max z C++
-#define MIN(a, b) (((a) < (b)) ? (a) : (b))
-#define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
-// Przenosimy stałe, ale nie same tablice
-const int large_pos = 2000000000;
-const int large_neg = -2000000000;
+int min(int a, int b){
+    if(a < b) return a;
+    return b;
+}
 
-int main() {
+int max(int a, int b){
+    if(a < b) return b;
+    return a;
+}
+
+int main(){
     int n;
-    scanf("%d", &n);
-
-    // --- Dynamiczna alokacja pamięci na stercie ---
-
-    // Zamiast: int motel_type[n]; (co też mogłoby zawieść dla dużego n w C90)
-    int *motel_type = malloc(n * sizeof(int));
-    int *motel_pos = malloc(n * sizeof(int));
-
-    // Specjalna składnia dla alokacji "2D"
-    // Alokujemy (n + 1) wskaźników do tablic [3] intów
-    int (*L)[3] = malloc((n + 1) * sizeof(int[3]));
-    
-    // Alokujemy (n + 2), bo używamy indeksu R[n + 1]
-    int (*R)[3] = malloc((n + 2) * sizeof(int[3]));
-
-    // Sprawdzenie, czy alokacja się powiodła (dobra praktyka)
-    if (motel_type == NULL || motel_pos == NULL || L == NULL || R == NULL) {
-        fprintf(stderr, "Blad alokacji pamieci!\n");
-        return 1; // Zakończ program z błędem
+    if (scanf("%d", &n) != 1) {
+        return 1; // Zakończ program, jeśli wczytanie się nie powiodło
     }
+    // Twoja alokacja pamięci (jest poprawna)
+    int *typ = malloc((size_t)n * sizeof(int));
+    int *pozycja = malloc((size_t)n * sizeof(int));
+    int **last_pref = malloc((size_t)n * sizeof(int *));
+    int **last_suf = malloc((size_t)n * sizeof(int *));
+    int **typ_pref = malloc((size_t)n * sizeof(int *));
+    int **typ_suf = malloc((size_t)n * sizeof(int *));
 
-    // --- Koniec alokacji ---
-
-
-    // Wczytywanie danych do dwóch oddzielnych tablic
+    // Twoja inicjalizacja (jest poprawna)
     for (int i = 0; i < n; i++) {
-        scanf("%d %d", &motel_type[i], &motel_pos[i]);
-    }
-
-    // Obliczanie tablicy L (najbliżsi po lewej)
-    L[0][0] = L[0][1] = L[0][2] = large_neg;
-    for (int i = 1; i <= n; i++) {
-        L[i][0] = L[i - 1][0];
-        L[i][1] = L[i - 1][1];
-        L[i][2] = L[i - 1][2];
-        L[i][motel_type[i - 1] - 1] = motel_pos[i - 1];
-    }
-
-    // Obliczanie tablicy R (najbliżsi po prawej)
-    R[n + 1][0] = R[n + 1][1] = R[n + 1][2] = large_pos;
-    for (int i = n; i > 0; i--) {
-        R[i][0] = R[i + 1][0];
-        R[i][1] = R[i + 1][1];
-        R[i][2] = R[i + 1][2];
-        R[i][motel_type[i - 1] - 1] = motel_pos[i - 1];
-    }
-
-    int minn = large_pos;
-    // Obliczanie minimalnej odległości
-    for (int i = 1; i <= n; i++) {
-        int pos = motel_pos[i - 1];
-        int type = motel_type[i - 1];
-        
-        if (type == 1) {
-            minn = MIN(minn, MIN(MAX(pos - L[i][1], R[i][2] - pos), MAX(pos - L[i][2], R[i][1] - pos)));
-        } else if (type == 2) {
-            minn = MIN(minn, MIN(MAX(pos - L[i][0], R[i][2] - pos), MAX(pos - L[i][2], R[i][0] - pos)));
-        } else { // type == 3
-            minn = MIN(minn, MIN(MAX(pos - L[i][0], R[i][1] - pos), MAX(pos - L[i][1], R[i][0] - pos)));
+        last_pref[i] = malloc(3 * sizeof(int));
+        last_suf[i] = malloc(3 * sizeof(int));
+        typ_pref[i] = malloc(3 * sizeof(int));
+        typ_suf[i] = malloc(3 * sizeof(int));
+        for (int j = 0; j < 3; j++) {
+            last_suf[i][j] = -1;
+            last_pref[i][j] = -1;
+            typ_suf[i][j] = -1;
+            typ_pref[i][j] = -1;
         }
     }
 
-    // Znajdowanie skrajnych pozycji dla każdego typu
-    int firstA = large_pos, lastA = -1;
-    int firstB = large_pos, lastB = -1;
-    int firstC = large_pos, lastC = -1;
-
+    // Twoje wczytywanie danych (jest poprawne)
     for (int i = 0; i < n; i++) {
-        int type = motel_type[i];
-        int pos = motel_pos[i];
-        
-        if (type == 1) {
-            firstA = MIN(firstA, pos);
-            lastA = MAX(lastA, pos);
-        } else if (type == 2) {
-            firstB = MIN(firstB, pos);
-            lastB = MAX(lastB, pos);
-        } else { // type == 3
-            firstC = MIN(firstC, pos);
-            lastC = MAX(lastC, pos);
+    if (scanf("%d %d", &typ[i], &pozycja[i]) != 2) {
+        return 1; // Zakończ program, jeśli wczytanie się nie powiodło
+    }
+}
+
+    if(n < 3){
+        printf("0 0\n");
+        return 0;
+    }
+
+    last_pref[0][0] = pozycja[0];
+    typ_pref[0][0] = typ[0];
+    for (int i = 1; i < n; i++) {
+        last_pref[i][0] = pozycja[i];
+        typ_pref[i][0] = typ[i];
+        // Sprawdź historię z poprzedniego kroku (i-1)
+        if (typ[i] != typ_pref[i - 1][0]) {
+            // Nowy motel ma inny typ niż ostatni z i-1
+            last_pref[i][1] = last_pref[i - 1][0];
+            typ_pref[i][1] = typ_pref[i - 1][0];
+            if (typ[i] != typ_pref[i - 1][1]) {
+                // Nowy motel ma też inny typ niż drugi ostatni z i-1
+                last_pref[i][2] = last_pref[i - 1][1];
+                typ_pref[i][2] = typ_pref[i - 1][1];
+            } else {
+                // Nowy motel ma taki sam typ jak drugi ostatni, więc bierzemy trzeciego
+                last_pref[i][2] = last_pref[i - 1][2];
+                typ_pref[i][2] = typ_pref[i - 1][2];
+            }
+        } else {
+            // Nowy motel ma taki sam typ jak ostatni z i-1.
+            // Po prostu kopiujemy historię.
+            last_pref[i][1] = last_pref[i - 1][1];
+            typ_pref[i][1] = typ_pref[i - 1][1];
+            last_pref[i][2] = last_pref[i - 1][2];
+            typ_pref[i][2] = typ_pref[i - 1][2];
         }
     }
 
-    int maxx = 0;
-    // Obliczanie maksymalnej odległości
-    for (int i = 0; i < n; i++) {
-        int pos = motel_pos[i];
-        int type = motel_type[i];
-
-        if (type == 1) {
-            if (firstB <= pos && lastC >= pos) maxx = MAX(maxx, MIN(pos - firstB, lastC - pos));
-            if (firstC <= pos && lastB >= pos) maxx = MAX(maxx, MIN(pos - firstC, lastB - pos));
-        } else if (type == 2) {
-            if (firstA <= pos && lastC >= pos) maxx = MAX(maxx, MIN(pos - firstA, lastC - pos));
-            if (firstC <= pos && lastA >= pos) maxx = MAX(maxx, MIN(pos - firstC, lastA - pos));
-        } else { // type == 3
-            if (firstB <= pos && lastA >= pos) maxx = MAX(maxx, MIN(pos - firstB, lastA - pos));
-            if (firstA <= pos && lastB >= pos) maxx = MAX(maxx, MIN(pos - firstA, lastB - pos));
+    last_suf[n - 1][0] = pozycja[n - 1];
+    typ_suf[n - 1][0] = typ[n - 1];
+    for(int i = n - 2; i >= 0; i--){
+        last_suf[i][0] = pozycja[i];
+        typ_suf[i][0] = typ[i];
+        if (typ[i] != typ_suf[i + 1][0]) {
+            // Nowy motel ma inny typ niż ostatni z i-1
+            last_suf[i][1] = last_suf[i + 1][0];
+            typ_suf[i][1] = typ_suf[i + 1][0];
+            if (typ[i] != typ_suf[i + 1][1]) {
+                // Nowy motel ma też inny typ niż drugi ostatni z i-1
+                last_suf[i][2] = last_suf[i + 1][1];
+                typ_suf[i][2] = typ_suf[i + 1][1];
+            } else {
+                // Nowy motel ma taki sam typ jak drugi ostatni, więc bierzemy trzeciego
+                last_suf[i][2] = last_suf[i + 1][2];
+                typ_suf[i][2] = typ_suf[i + 1][2];
+            }
+        } else {
+            // Nowy motel ma taki sam typ jak ostatni z i-1.
+            // Po prostu kopiujemy historię.
+            last_suf[i][1] = last_suf[i + 1][1];
+            typ_suf[i][1] = typ_suf[i + 1][1];
+            last_suf[i][2] = last_suf[i + 1][2];
+            typ_suf[i][2] = typ_suf[i + 1][2];
         }
     }
 
-    // Wypisanie wyników
-    printf("%d %d\n", minn, maxx);
+    int min_max_dist = INT_MAX;
+    for(int i = 1; i < n - 1; i++){
+        int B_typ = typ[i];
+        int B_pos = pozycja[i];
+        for(int k = 1; k < 3; k++){
+            for(int j = 1; j < 3; j++){
+                int A_pos = last_pref[i][k];
+                int A_typ = typ_pref[i][k];
+                int C_pos = last_suf[i][j];
+                int C_typ = typ_suf[i][j];
+                if(A_typ != - 1 && B_typ != -1 && C_typ != -1 && A_typ != B_typ && A_typ != C_typ && B_typ != C_typ)
+                    min_max_dist = min(max(B_pos - A_pos, C_pos - B_pos), min_max_dist);
+            }
+        }
+    }
 
-    // --- Zwolnienie pamięci ---
-    // Bardzo ważne jest, aby zwolnić pamięć, którą alokowaliśmy
-    free(motel_type);
-    free(motel_pos);
-    free(L);
-    free(R);
-    // --- Koniec zwalniania ---
+    int *first_pos = malloc(3 * sizeof(int));
+    int *first_typ = malloc(3 * sizeof(int));
+    int *last_pos = malloc(3 * sizeof(int));
+    int *last_typ = malloc(3 * sizeof(int));
+    for(int i = 0; i < 3; i++){
+        first_pos[i] = -1;
+        first_typ[i] = -1;
+        last_pos[i] = -1;
+        last_typ[i] = -1;
+    }
+    first_pos[0] = pozycja[0];
+    first_typ[0] = typ[0];
+    for(int i = 1; i < n; i++){
+        if(first_typ[1] == -1 && typ[i] != typ[0]){
+            first_typ[1] = typ[i];
+            first_pos[1] = pozycja[i];
+            continue;
+        }
+        if(first_typ[2] == -1 && typ[i] != typ[0] && typ[i] != first_typ[1]){
+            first_typ[2] = typ[i];
+            first_pos[2] = pozycja[i];
+        }
+    }
+    last_pos[0] = pozycja[n - 1];
+    last_typ[0] = typ[n - 1];
+    for(int i = n - 2; i >= 0; i--){
+        if(last_typ[1] == -1 && typ[i] != typ[n - 1]){
+            last_typ[1] = typ[i];
+            last_pos[1] = pozycja[i];
+            continue;
+        }
+        if(last_typ[2] == -1 && typ[i] != typ[n - 1] && typ[i] != last_typ[1]){
+            last_typ[2] = typ[i];
+            last_pos[2] = pozycja[i];
+        }
+    }
+//     fprintf(stderr, "--- Debug: first_pos / first_typ ---\n");
+//     for(int i = 0; i < 3; i++){
+//         fprintf(stderr, "Indeks %d: Pozycja = %d, Typ = %d\n", i, first_pos[i], first_typ[i]);
+//     }
+//
+//     fprintf(stderr, "\n--- Debug: last_pos / last_typ ---\n");
+//     for(int i = 0; i < 3; i++){
+//         fprintf(stderr, "Indeks %d: Pozycja = %d, Typ = %d\n", i, last_pos[i], last_typ[i]);
+//     }
+//     fprintf(stderr, "---------------------------------------\n\n");
+    // ----- KONIEC BLOKU DEBUGOWANIA -----
+    int max_min_dist = -1;
+    for(int i = 1; i < n - 1; i++){
+        for(int k = 0; k < 3; k++){
+            for(int j = 0; j < 3; j++){
+                int A_pos = first_pos[k];
+                int A_typ = first_typ[k];
+                int B_pos = pozycja[i];
+                int B_typ = typ[i];
+                int C_pos = last_pos[j];
+                int C_typ = last_typ[j];
+                if(A_typ != -1 && B_typ != -1 && C_typ != -1){
+                    if(A_pos <= B_pos && B_pos <= C_pos && A_typ != B_typ && C_typ != B_typ &&  C_typ != A_typ){
+                        max_min_dist = max(max_min_dist, min(B_pos - A_pos, C_pos - B_pos));
+                        //printf("%d %d\n", max_min_dist, i);
+                    }
+                }
+            }
+        }
+    }
+    // 4. WYPISANIE WYNIKÓW
+    if (max_min_dist == -1)
+        printf("0 0\n");
+    else
+        printf("%d %d\n", min_max_dist, max_min_dist);
 
-    return 0;
+
+    // 5. ZWALNIANIE PAMIĘCI (bardzo ważne!)
+    for (int i = 0; i < n; i++) {
+        free(last_pref[i]);
+        free(last_suf[i]);
+        free(typ_pref[i]);
+        free(typ_suf[i]);
+    }
+    free(last_pref);
+    free(last_suf);
+    free(typ_pref);
+    free(typ_suf);
+    free(typ);
+    free(pozycja);
+
+    return 0; // Dobra praktyka
 }
