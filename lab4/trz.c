@@ -16,9 +16,8 @@ int max(int a, int b){
 int main(){
     int n;
     if (scanf("%d", &n) != 1) {
-        return 1; // Zakończ program, jeśli wczytanie się nie powiodło
+        return 1;// Zakoncz program, jak wystapil blad z wczytaniem danych
     }
-    // Twoja alokacja pamięci (jest poprawna)
     int *typ = malloc((size_t)n * sizeof(int));
     int *pozycja = malloc((size_t)n * sizeof(int));
     int **last_pref = malloc((size_t)n * sizeof(int *));
@@ -26,7 +25,6 @@ int main(){
     int **typ_pref = malloc((size_t)n * sizeof(int *));
     int **typ_suf = malloc((size_t)n * sizeof(int *));
 
-    // Twoja inicjalizacja (jest poprawna)
     for (int i = 0; i < n; i++) {
         last_pref[i] = malloc(3 * sizeof(int));
         last_suf[i] = malloc(3 * sizeof(int));
@@ -40,18 +38,17 @@ int main(){
         }
     }
 
-    // Twoje wczytywanie danych (jest poprawne)
     for (int i = 0; i < n; i++) {
-    if (scanf("%d %d", &typ[i], &pozycja[i]) != 2) {
-        return 1; // Zakończ program, jeśli wczytanie się nie powiodło
+        if (scanf("%d %d", &typ[i], &pozycja[i]) != 2) {
+            return 1; // Zakoncz program, jak wystapil blad z wczytaniem danych
+        }
     }
-}
 
     if(n < 3){
         printf("0 0\n");
         return 0;
     }
-
+    //wyznaczamy najblizsze na prefixie i sufixie motele o roznych typach
     last_pref[0][0] = pozycja[0];
     typ_pref[0][0] = typ[0];
     for (int i = 1; i < n; i++) {
@@ -110,7 +107,7 @@ int main(){
     }
 
     int min_max_dist = INT_MAX;
-    for(int i = 1; i < n - 1; i++){
+    for(int i = 1; i < n - 1; i++){ //sprawdzamy kazdy motel jako srodkowy z trojki 
         int B_typ = typ[i];
         int B_pos = pozycja[i];
         for(int k = 1; k < 3; k++){
@@ -137,7 +134,8 @@ int main(){
     }
     first_pos[0] = pozycja[0];
     first_typ[0] = typ[0];
-    for(int i = 1; i < n; i++){
+    // wyznaczamy pierwsze trzy motele roznych typow
+    for(int i = 1; i < n; i++){ 
         if(first_typ[1] == -1 && typ[i] != typ[0]){
             first_typ[1] = typ[i];
             first_pos[1] = pozycja[i];
@@ -147,7 +145,8 @@ int main(){
             first_typ[2] = typ[i];
             first_pos[2] = pozycja[i];
         }
-    }
+    } 
+    // analogicznie wyznaczamy ostatnie 3 motele roznych typow
     last_pos[0] = pozycja[n - 1];
     last_typ[0] = typ[n - 1];
     for(int i = n - 2; i >= 0; i--){
@@ -161,19 +160,8 @@ int main(){
             last_pos[2] = pozycja[i];
         }
     }
-//     fprintf(stderr, "--- Debug: first_pos / first_typ ---\n");
-//     for(int i = 0; i < 3; i++){
-//         fprintf(stderr, "Indeks %d: Pozycja = %d, Typ = %d\n", i, first_pos[i], first_typ[i]);
-//     }
-//
-//     fprintf(stderr, "\n--- Debug: last_pos / last_typ ---\n");
-//     for(int i = 0; i < 3; i++){
-//         fprintf(stderr, "Indeks %d: Pozycja = %d, Typ = %d\n", i, last_pos[i], last_typ[i]);
-//     }
-//     fprintf(stderr, "---------------------------------------\n\n");
-    // ----- KONIEC BLOKU DEBUGOWANIA -----
     int max_min_dist = -1;
-    for(int i = 1; i < n - 1; i++){
+    for(int i = 1; i < n - 1; i++){ //sprawdzamy kazdy motel jako srodkowy z trojki i dobieramy mu najdalsze inne niz on
         for(int k = 0; k < 3; k++){
             for(int j = 0; j < 3; j++){
                 int A_pos = first_pos[k];
@@ -185,20 +173,17 @@ int main(){
                 if(A_typ != -1 && B_typ != -1 && C_typ != -1){
                     if(A_pos <= B_pos && B_pos <= C_pos && A_typ != B_typ && C_typ != B_typ &&  C_typ != A_typ){
                         max_min_dist = max(max_min_dist, min(B_pos - A_pos, C_pos - B_pos));
-                        //printf("%d %d\n", max_min_dist, i);
                     }
                 }
             }
         }
     }
-    // 4. WYPISANIE WYNIKÓW
+    // wypisujemy wyniki
     if (max_min_dist == -1)
         printf("0 0\n");
     else
         printf("%d %d\n", min_max_dist, max_min_dist);
 
-
-    // 5. ZWALNIANIE PAMIĘCI (bardzo ważne!)
     for (int i = 0; i < n; i++) {
         free(last_pref[i]);
         free(last_suf[i]);
