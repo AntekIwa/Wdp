@@ -2,6 +2,7 @@
 
 using namespace std;
 
+// template kolejki monotonicznej
 template<typename T, typename Compare>
 struct MonotonicDeque{
     deque<T> dq;
@@ -26,6 +27,7 @@ struct Segment{
     long long len; // długość (r - l + 1)
 };
 
+// rozne komparatory (sortowanie rosnaca/malejaco/po jakosci przedzialow) 
 struct RemoveSmaller{ 
     bool operator()(const PointVal& a, const PointVal& b) const { return a.val <= b.val; }
 };
@@ -41,10 +43,8 @@ struct RemoveWorseQuality {
         // Porównujemy kwadraty: dx^2 / len.
         // Czyli: a.dx^2 / a.len < b.dx^2 / b.len
         // Mnożąc na krzyż: a.dx^2 * b.len < b.dx^2 * a.len
-        
         // Ponieważ wynik mnożenia (~10^24) przekracza long long, 
         // a nie mamy int128, używamy long double do obliczenia iloczynu.
-        // Jest to bezpieczniejsze i szybsze niż używanie sqrt().
         return (long double)a.dx * a.dx * b.len < (long double)b.dx * b.dx * a.len;
     }
 };
@@ -62,7 +62,7 @@ int main(){
 
     int left = 0;
     vector<int> longest(n);
-
+    // dla kazdego i liczymy najdluzszy przedzial zgodny z warunkami zadania idacy w lewa strone
     for(int i = 0; i < n; i++){
         MaxQ.push({punkty[i].second, i});
         MinQ.push({punkty[i].second, i});
@@ -74,10 +74,11 @@ int main(){
         }
         longest[i] = i - left + 1;
     }
-
+    
+    //sprawdzamy ktore przedzialy sa kandydatami - ktore sa maksymalne
     vector<Segment> candidates;
     for(int i = 0; i < n; i++){
-        if(i == n - 1 || longest[i + 1] != longest[i] + 1){
+        if(i == n - 1 || longest[i + 1] != longest[i] + 1){ // jesli zachodzi warunek to kolejny pokrywa aktualny
             int r = i;
             int l = i - longest[i] + 1;
             
@@ -90,7 +91,7 @@ int main(){
 
     MonotonicDeque<Segment, RemoveWorseQuality> Q;
     int ptr = 0;
-    for(int i = 0; i < n; i++){
+    for(int i = 0; i < n; i++){ // dla kazdego punktu znajdujemy najlepszy przedzial ktory go zawiera
         // Dodajemy kandydatów
         while(ptr < (int)candidates.size() && candidates[ptr].l <= i){
             Q.push(candidates[ptr]);
