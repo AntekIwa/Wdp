@@ -37,14 +37,8 @@ struct RemoveLarger {
 };
 
 struct RemoveWorseQuality {
+    // porwunujemy kwadraty jakosci ale z racji zbyt duzych liczb robimy to na long doublach
     bool operator()(const Segment& a, const Segment& b) const {
-        // Chcemy sprawdzić czy jakość A < jakość B.
-        // Jakość to dx / sqrt(len).
-        // Porównujemy kwadraty: dx^2 / len.
-        // Czyli: a.dx^2 / a.len < b.dx^2 / b.len
-        // Mnożąc na krzyż: a.dx^2 * b.len < b.dx^2 * a.len
-        // Ponieważ wynik mnożenia (~10^24) przekracza long long, 
-        // a nie mamy int128, używamy long double do obliczenia iloczynu.
         return (long double)a.dx * a.dx * b.len < (long double)b.dx * b.dx * a.len;
     }
 };
